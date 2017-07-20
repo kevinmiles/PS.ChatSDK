@@ -1,0 +1,16 @@
+.videoDisplay video
+{
+  width:100%
+}
+
+body
+{
+  background:transparent
+}
+
+@media min-width 768px {
+  .videoDisplay.remoteVideo video
+  {
+    height:400px
+  }
+}
