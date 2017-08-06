@@ -1,7 +1,8 @@
 # CCSP Chat SDK v.2
 
 ## 1 Overview
-The purpose of this SDK is to allow a customer to develop chat user interface using CCSP JSON helper library for chat.
+The purpose of this SDK is to allow a customer to develop chat user interface using CCSP JSON helper library for chat.  
+**We want your feedback!** Email [CCSP_PS@enghouse.com](CCSP_PS@enghouse.com) with suggested improvements, feature requests and general feedback, or feel free to open a GitHub issue.  
 Below screenshot of sample application in Desktop Browser:
 
 ![image](https://raw.githubusercontent.com/Enghouse-CCSP-PS/PS.ChatSDK/master/Docs/img/1.PNG)
@@ -65,3 +66,9 @@ Use **F12** to open Developer Tools and see XHR requests.
 *A: Your HTTPS certificate for  {url} is not valid. For **development or testing** purposes you can disable these warnings:   
 Open {url} in new tab -> click on "ADVANCED" -> click on "Proceed to {url} (unsafe)"*
 
+
+## 6 Contributing
+
+Bug fixes welcome! If you're not familiar with the GitHub pull
+request/contribution process,
+[this is a nice tutorial](https://gun.io/blog/how-to-github-fork-branch-and-pull-request/).
