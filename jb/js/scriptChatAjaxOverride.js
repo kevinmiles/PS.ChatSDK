@@ -14,15 +14,12 @@ chat.init = function() {
     $('#chatLineHolder')
         .slimScroll({
             height: '400px',
-            width: '90%'
+            width: '90%',
+            color: '#ffffff'
         });
 
-    if (!chatSDKGlobals.IsVideoEnabled) {
-        $('.videoContainer').remove();
-    }
-
-    $('#name').defaultText('Your name');
-    $('#subject').defaultText('');
+    $('#nameField').defaultText('Your name');
+    $('#emailField').defaultText('');
 
     // Converting the #chatLineHolder div into a jScrollPane,
     // and saving the plugin's API in chat.data:
@@ -47,13 +44,13 @@ chat.init = function() {
             if (working) return false;
             working = true;
 
-            chatSDK.joinChat($('#name').val(), $('#subject').val(),
+            chatSDK.joinChat($('#nameField').val(), $('#emailField').val(),
                 function(success, result) {
                     working = false;
                     if (!success) {
                         chat.displayError(result.statusText);
                     } else
-                        chat.login($('#name').val(), result.Connection_ID);
+                        chat.login($('#nameField').val(), result.Connection_ID);
                 });
             return false;
         });
@@ -72,65 +69,15 @@ chat.init = function() {
                     onkeyupTimer = null;
                 },
                 5000);
-            
+
             if (e.keyCode === 13 && !e.shiftKey) {
                 e.preventDefault();
                 $('#send').click();
             }
         });
 
-    //Submitting result of upload file
-    $(document)
-        .on("click",
-            "#fireEventBtn",
-            function() {
-                var text = $('#eventText')
-                    .val();
-                if (text.length === 0) {
-                    return false;
-                }
-                var eventName = "SC_ATTACHMENT"; //only as sample
-                var optionalParameterArray = new Array();
-                optionalParameterArray.push({
-                    key: "SC_URL",
-                    value: text
-                });
-                optionalParameterArray.push({
-                    key: "SC_SECOND",
-                    value: "FOR_TEST"
-                });
-                if (working) return false;
-                working = true;
-                var message = "Fire Event:" + eventName + " " + text;
-
-                // Assigning a temporary ID to the chat:
-                var tempID = 't' + Math.round(Math.random() * 1000000),
-                    params = {
-                        id: tempID,
-                        author: chat.data.name,
-                        author_type: 'me',
-                        gravatar: chat.data.gravatar,
-                        text: message.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    };
-
-                // Using our addChatLine method to add the chat
-                // to the screen immediately, without waiting for
-                // the AJAX request to complete:
-                chat.addChatLine($.extend({}, params));
-                chatSDK.fireEvent(eventName,
-                    optionalParameterArray,
-                    function(success, result) {
-                        working = false;
-                        if (!success) {
-                            $('div.chat-' + tempID).remove();
-                            chat.displayError(result.statusText);
-                        } else {
-                            //remove not sent message
-                            $('#chatText').val('');
-                        }
-                    });
-            });
     // Submitting a new chat entry:
+    $(document).off('click', "#send");
     $(document)
         .on("click",
             "#send",
@@ -183,31 +130,6 @@ chat.init = function() {
     (function getEventsTimeoutFunction() {
         chat.getEvents(getEventsTimeoutFunction);
     })();
-
-    $('#uploadBTN')
-        .on('click',
-            function() {
-                $('#fileUpload').click();
-            });
-
-    $('#fileUpload')
-        .on('change',
-            function(e) {
-                var fd = new FormData();
-                fd.append('file', e.currentTarget.files[0]);
-                $.ajax({
-                    url: '/SocialConnectorHelperAPI/api/helper/saveFile',
-                    type: 'POST',
-                    data: fd,
-                    success: function(data) {
-                        $('#eventText')
-                            .val(data.FilePath);
-                    },
-                    cache: false,
-                    contentType: false,
-                    processData: false
-                });
-            });
 };
 
 // The login method hides displays the
@@ -215,11 +137,9 @@ chat.init = function() {
 chat.login = function(name, gravatar) {
     chat.data.name = name;
     chat.data.gravatar = gravatar;
-    $('#chatTopBar')
-        .html(chat.render('loginTopBar', chat.data));
     $('#loginForm')
         .fadeOut(function() {
-            $('#chatTopBar')
+            $('#chatEndRow')
                 .fadeIn();
             $('#chatLineHolder')
                 .fadeIn();
@@ -227,13 +147,8 @@ chat.login = function(name, gravatar) {
                 .fadeIn();
             $('#chatText')
                 .focus();
-            $('.chatContainer')
-                .removeClass('hidden');
-            $('.topWell')
-                .removeClass('hidden');
         });
 };
-
 chat.disconnectButtonOnClick = function() {
     // Logging the user out:
     chatSDK.leaveChat(function(success, result) {
@@ -246,21 +161,23 @@ chat.disconnectButtonOnClick = function() {
     });
     return false;
 };
-
 // The render method generates the HTML markup 
 // that is needed by the other methods:
 chat.render = function(template, params) {
     var arr = [];
     switch (template) {
-        case 'loginTopBar':
-            arr = ['<strong class="name">', params.name, '</strong><button type="button" id="disconnectButton" onclick="chat.disconnectButtonOnClick();" class="btn pull-right btn-danger">Disconnect</button></strong>'];
-            break;
         case 'chatLine':
-            arr = ['<div class="clearfix">' + '<div class="message-data', (params.author_type == 'CCU' ? ' align-right ' : ' align-left '), params.author_type, ' chat-', params.id, '">' + '</span>' + '<span class="message-data-time">', params.time, '</span> ' + '<span class="message-data-name">', params.author, ':</span>' + '</div>', '<div class="message', (params.author_type == 'CCU' ? ' other-message float-right ' : ' my-message float-left '), '">', params.text, '</div></div>'];
-            break;
-        case 'user':
-            arr = ['<div class="user" title="', params.name, '"><img src="',
-                params.gravatar, '" width="30" height="30" onload="this.style.visibility=\'visible\'" /></div>'
+            arr = [
+                '<div class="row"><div class="col-xs-12 chatLine"><i>(',
+                params.time,
+                ')</i> <strong class="',
+                params.author_type === 'me' ? 'highlight">' : '">',
+                params.isSystemMessage ? '' : (params.author + ':'),
+                '</strong> ',
+                params.isSystemMessage ? '<i class="systemMessage">' : '',
+                params.text !== "" ? params.text : params.URL_Pushed,
+                params.isSystemMessage ? '</i>' : '',
+                '</div>'
             ];
             break;
     }
@@ -268,7 +185,6 @@ chat.render = function(template, params) {
     // multiple concatenations
     return arr.join('');
 };
-
 // The addChatLine method ads a chat entry to the page
 chat.addChatLine = function(params) {
     // All times are displayed in the user's timezone
@@ -279,7 +195,7 @@ chat.addChatLine = function(params) {
         // internally converts it for us.
         d.setUTCHours(params.time.hours, params.time.minutes);
     }
-    params.time = (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+    params.time = d.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true });
     var markup = chat.render('chatLine', params),
         exists = $('#chatLineHolder .chat-' + params.id);
     if (exists.length) {
@@ -293,40 +209,68 @@ chat.addChatLine = function(params) {
     }
     $('#chatLineHolder')
         .append(markup);
+
+    var bottomCoord = $('#chatLineHolder')[0].scrollHeight;
+    $('#chatLineHolder').slimScroll({scrollTo: bottomCoord});        
+};
+
+chat.AddSystemMessage = function(message) {
+    var params = {
+        isSystemMessage: true,
+        text: message.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    };
+    chat.addChatLine($.extend({}, params));
+};
+
+var onChatMessageReceived = function(result) {
+    chat.data.noActivity = 0;
+    if (chat.isChatEvent(result)) {
+        chat.handleChatEvent(result);
+    } else {
+        chat.addChatLine(result);
+    }
+};
+
+var onChatStatusReceived = function(result) {
+    chat.data.noActivity = 0;
+    var message;
+    var status = chatSDKGlobals.StatusRes[result.Status_Code];
+    if (status)
+        message = status.messageForUser;
+    if (result.Status_Code == "165") {
+        message = message.replace('{timeToWait}', chatSDKGlobals["WaitingInQueue"][result.Additional_Information]);
+        message = message.replace('{minutesToWait}', result.Estimated_Time);
+    }
+    if (result.Status_Code == "107") //disconnected
+    {
+        if (result.Additional_Information)
+            message = message + 'Reason: ' + chatSDKGlobals["NoAgentForThisCall"][result.Additional_Information];
+
+        bContinue = false;
+        chat.Disconnect();
+    }
+
+    chat.AddSystemMessage(message);
+};
+
+var onChatDisconnect = function(strParticipant) {
+    bContinue = false;
+    chat.Disconnect();
+    chat.AddSystemMessage(chatSDKGlobals.ParticipantDisconnectedMessage.replace('{name}', strParticipant));
+};
+
+var onChatError = function(errCode, result) {
+    if (errCode != null && errCode != "") chat.displayError(errCode);
+    else if (result != null) chat.displayError(result.statusText);
+    else //no events
+        chat.data.noActivity++;
 };
 
 // This method requests the latest chats
 // (since lastID), and adds them to the page.
 chat.getEvents = function(callback) {
     var bContinue = true;
-    var noActivity = 0;
-    chatSDK.getEvents(function ChatMessage(result) {
-        chat.data.noActivity = 0;
-        if (chat.isChatEvent(result)) {
-            chat.handleChatEvent(result);
-        } else if (chat.isVideoSession(result)) {
-            chat.handleVideo(result);
-        } else {
-            chat.addChatLine(result);
-        }
-    }, function ChatStatus(result) {
-        chat.data.noActivity = 0;
-        log.info(result.Status_Code + result.Status_Desc);
-        if (result.Status_Code == "107") //disconnected
-        {
-            bContinue = false;
-            chat.Disconnect();
-        }
-    }, function ChatDisconnect(strParticipant) {
-        bContinue = false;
-        chat.Disconnect();
-        log.info(strParticipant + " disconnected.");
-    }, function ChatError(errCode, result) {
-        if (errCode != null && errCode != "") chat.displayError(errCode);
-        else if (result != null) chat.displayError(result.statusText);
-        else //no events
-            chat.data.noActivity++;
-    });
+    chatSDK.getEvents(onChatMessageReceived, onChatStatusReceived, onChatDisconnect, onChatError);
     // Setting a timeout for the next request,
     // depending on the chat activity:
     var nextRequest = 1000;
@@ -343,14 +287,13 @@ chat.getEvents = function(callback) {
     }
     setTimeout(callback, nextRequest);
 };
-
 // This method displays an error message on the top of the page:
 chat.displayError = function(msg) {
-    log.error(msg);
     var elem = $('<div>', {
-        id: 'chatErrorMessage',
+        class: 'alert alert-warning alert-dismissible',
         html: msg
     });
+    elem.append('<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>');
     elem.click(function() {
         $(this)
             .fadeOut(function() {
@@ -362,10 +305,9 @@ chat.displayError = function(msg) {
         elem.click();
     }, 5000);
     elem.hide()
-        .appendTo('body')
+        .appendTo('#errorLinesHolder')
         .slideDown();
 };
-
 chat.typingMessage = function(typing_status) {
     chatSDK.typingMessage(typing_status, function(success, result) {
         working = false;
@@ -376,9 +318,8 @@ chat.typingMessage = function(typing_status) {
         }
     });
 };
-
 chat.Disconnect = function() {
-    $('#chatTopBar > span')
+    $('#chatEndRow')
         .fadeOut(function() {
             $('#disconnectButton')
                 .remove();
@@ -387,71 +328,23 @@ chat.Disconnect = function() {
         .fadeOut(function() {
             $('#chatTopBar')
                 .fadeOut();
-            $('#chatLineHolder')
-                .fadeOut();
-            $('#chatLineHolder')
-                .html('');
             $('#loginForm')
                 .fadeIn();
-            $('.chatContainer')
-                .addClass('hidden');
-            $('.topWell')
-                .addClass('hidden');
-            $('.videoContainer')
-                .addClass('hidden');
         });
     //$('#chatStatus').html('<p class="count">' + 'Disconnected' + '</p>');
-    log.info("Disconnected");
 };
-
-chat.isVideoSession = function(item) {
-    //So far there is no way to understand if we've got a video session or just url...
-    //That's the way we will go for now.
-    if (!item.URL_Pushed || item.URL_Pushed.indexOf('.') !== -1 || item.URL_Pushed.indexOf('/') === -1) return false;
-    return true;
-};
-
-chat.handleVideo = function(item) {
-    if (!chat.isVideoSession(item)) return;
-    var lastIndexOfSlash = item.URL_Pushed.lastIndexOf('/');
-    var roomName = item.URL_Pushed.slice(lastIndexOfSlash + 1);
-    document.getElementById("videoFrame")
-        .src = 'https://' + window.location.hostname + window.location.pathname + 'video.html' + '?userName=' + chat.data.name + '&roomName=' + roomName;
-    $('.videoContainer')
-        .removeClass('hidden');
-};
-
 chat.isChatEvent = function(item) {
     return item && item.text && item.text.indexOf(chat.chatEventHeader) === 0;
 };
-
 chat.handleChatEvent = function(item) {
     if (!chat.isChatEvent(item)) return;
-    var actualEventName = item.text.slice(chat.chatEventHeader.length);
-    switch (actualEventName) {
-        case "stoppedCoBrowsing":
-            document.getElementById("videoFrame")
-                .src = '';
-            $('.videoContainer')
-                .addClass('hidden');
-    }
 };
 
-
-function toggleRegion(regionSelector, regionName, height) {
-    var region = $(regionSelector);
-    var btn = region.parent()
-        .find('.toggleRegionButton');
-    var textField = btn.find('span.toggleText');
-    if (textField.text() === 'Hide ' + regionName) {
-        textField.text('Show ' + regionName);
-    } else {
-        textField.text('Hide ' + regionName);
+chat.clearChat = function() {
+    if (confirm('Do you really want to clear the chat? All conversation will be cleared!')) {
+        $('#chatLineHolder')
+            .html('');
     }
-    btn.find('span.toggleIcon')
-        .toggleClass('glyphicon-chevron-down')
-        .toggleClass('glyphicon-chevron-up');
-    region.slideToggle(500);
 }
 
 // A custom jQuery method for placeholder text:

@@ -1,0 +1,27 @@
+    body {
+        background: url(../../img/inflicted.png) #323232;
+        border-top: 5px solid #212121;
+        color: #eee;
+        font: 15px Calibri, Arial, sans-serif
+    }
+
+    #chatLineHolder {
+        height: 400px;
+        border: 1px white solid;
+        margin-left: 10%;
+        border-radius: 10px;
+        padding: 5px;
+        font-size: 17px;
+    }
+
+    .chatLine {
+        white-space: pre;
+    }
+
+    .highlight {
+        color: #fecd08;
+    }
+
+    .systemMessage {
+        color: gray;
+    }

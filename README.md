@@ -47,7 +47,10 @@ File *js/PS.ChatSDK.js* contains following methods to interact with CCSP:
 * **fireEvent**: function(strEventName, optionalParameterArray, guiCallbackFunction) - fires custom agent to CCSP (uses *chatSDKGlobals.FireEventData* object)
 * **leaveChat**: function(guiCallbackFunction) - leaves chat and ends call (uses *chatSDKGlobals.LeaveChatData* object)
 
-## 4 Troubleshooting notes
+## 4 Additional examples
+* Example of ChatSDK usage is available: file index.html and additional files in jb folder, contains additional working example of ChatSDK usage. 
+
+## 5 Troubleshooting notes
 
 To enable writing of chat logs, create following key in registry:
 * HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\CCUInternetConnectionServer\Parameters\CosmoDesignerLoggingEnable
@@ -60,14 +63,14 @@ To open BlackBird logging use **F2** button in browser. More on BlackBird [here]
 
 Use **F12** to open Developer Tools and see XHR requests.
 ![image](https://raw.githubusercontent.com/Enghouse-CCSP-PS/PS.ChatSDK/master/Docs/img/5.PNG)
-## 5 Frequently asked questions
+## 6 Frequently asked questions
 
 **Q: I am getting OPTIONS {url} net::ERR_INSECURE_RESPONSE while trying to send requests in Chrome**  
 *A: Your HTTPS certificate for  {url} is not valid. For **development or testing** purposes you can disable these warnings:   
 Open {url} in new tab -> click on "ADVANCED" -> click on "Proceed to {url} (unsafe)"*
 
 
-## 6 Contributing
+## 7 Contributing
 
 Bug fixes welcome! If you're not familiar with the GitHub pull
 request/contribution process,

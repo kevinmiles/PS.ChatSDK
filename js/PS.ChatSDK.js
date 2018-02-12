@@ -46,8 +46,10 @@ var chatSDK = {
 							}
 							case "status":
 							{
-								var nameOfStatus = "chatSDKGlobals.StatusRes[" + item.Status_Code + "]";
-								var statusDesc = eval(nameOfStatus);
+								var statusDesc = '';
+								var status = chatSDKGlobals.StatusRes[item.Status_Code];
+								if (status)
+										statusDesc = status.description;
 
 								var chatResult = {
 									id: item.Event_ID,

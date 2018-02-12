@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="vendor/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="jb/css/site.css" />
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
+                <img src="jb/img/MainLogoChatHeader2.png" class="center-block" alt="Just Bats">
+            </div>
+        </div>
+        <br />
+        <div class="row" id="loginForm">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="nameField">Name</label>
+                        <input type="text" required class="form-control" id="nameField">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailField">Email address <small>(optional)</small></label>
+                        <input type="email" class="form-control" id="emailField">
+                    </div>
+                    <button type="button" id="connect" class="btn btn-success">Start Chat</button>
+                </form>
+            </div>
+        </div>
+        <br />
+        <br />
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2" style="display: none;" id="chatLineHolder">
+            </div>
+        </div>
+        <br />
+        <br />
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2" id="errorLinesHolder">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2" style="display: none;" id="submitForm">
+                <div class="row">
+                    <div class="col-xs-8">
+                        <textarea rows="2" id="chatText" class="form-control"> </textarea>
+                    </div>
+                    <div class="col-xs-2">
+                        <button class="btn btn-success btn-lg" id="send">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2" style="display: none;" id="chatEndRow">
+                <div class="row">
+                    <div class="col-xs-2">
+                        <button class="btn btn-success" onclick="chat.disconnectButtonOnClick();">End Chat</button>
+                    </div>
+                    <div class="col-xs-offset-2 col-xs-2">
+                        <button class="btn btn-danger" onclick="chat.clearChat();">Clear Chat</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script type="text/javascript" src="vendor/jquery/jquery-2.1.4.js"></script>
+    <script type="text/javascript" src="vendor/bootstrap/bootstrap.min.js"></script>
+    <script type="text/javascript" src="vendor/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script type="text/javascript" src="js/PS.ChatSDK.Globals.js"></script>
+    <script type="text/javascript" src="js/PS.ChatSDK.js"></script>
+    <script type="text/javascript" src="jb/js/scriptChatAjaxOverride.js"></script>
+    <script type="text/javascript">
+    window.onbeforeunload = null;
+    </script>
+</body>
+
+</html>
