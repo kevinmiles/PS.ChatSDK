@@ -6,9 +6,15 @@ var chat = {
     chatEventHeader: "[ccspChatEvent]",
     data: {
         lastID: 0,
-        noActivity: 0
+		currentCallID: undefined
     }
 };
+
+var log = window.log || {
+	info: function(m) {console.log(m);},
+	error: function(m) {console.error(m);}
+}
+
 // Init binds event listeners and sets up timers:
 chat.init = function() {
     $('#chatLineHolder')
@@ -155,9 +161,8 @@ chat.disconnectButtonOnClick = function() {
         working = false;
         if (success == false) {
             chat.displayError(result.statusText);
-        } else {
-            chat.Disconnect();
         }
+		chat.Disconnect();
     });
     return false;
 };
@@ -223,7 +228,6 @@ chat.AddSystemMessage = function(message) {
 };
 
 var onChatMessageReceived = function(result) {
-    chat.data.noActivity = 0;
     if (chat.isChatEvent(result)) {
         chat.handleChatEvent(result);
     } else {
@@ -232,14 +236,18 @@ var onChatMessageReceived = function(result) {
 };
 
 var onChatStatusReceived = function(result) {
-    chat.data.noActivity = 0;
     var message;
     var status = chatSDKGlobals.StatusRes[result.Status_Code];
     if (status)
         message = status.messageForUser;
+
     if (result.Status_Code == "165") {
         message = message.replace('{timeToWait}', chatSDKGlobals["WaitingInQueue"][result.Additional_Information]);
         message = message.replace('{minutesToWait}', result.Estimated_Time);
+    }
+	if (result.Status_Code == "166") {
+        chat.data.currentCallID = result.CallID;
+		return;
     }
     if (result.Status_Code == "107") //disconnected
     {
@@ -249,7 +257,17 @@ var onChatStatusReceived = function(result) {
         bContinue = false;
         chat.Disconnect();
     }
-
+	
+	if (!message){
+		try{
+			log.info('Unknown status received: ' + JSON.stringify(result));
+		}
+		catch(e){
+			log.error(e);
+		}
+		return;
+	}
+		
     chat.AddSystemMessage(message);
 };
 
@@ -262,30 +280,28 @@ var onChatDisconnect = function(strParticipant) {
 var onChatError = function(errCode, result) {
     if (errCode != null && errCode != "") chat.displayError(errCode);
     else if (result != null) chat.displayError(result.statusText);
-    else //no events
-        chat.data.noActivity++;
+};
+
+var onAgentTyping = function(typingStatus){
+	if (typingStatus === "1"){
+		$('#agentTypingMessage').show();
+		return;
+	}
+	else if (typingStatus === "2") {
+		$('#agentTypingMessage').hide();
+		return;
+	}
+	
+	log.error('typingStatus ' + typingStatus + ' is not supported');
 };
 
 // This method requests the latest chats
 // (since lastID), and adds them to the page.
 chat.getEvents = function(callback) {
     var bContinue = true;
-    chatSDK.getEvents(onChatMessageReceived, onChatStatusReceived, onChatDisconnect, onChatError);
-    // Setting a timeout for the next request,
-    // depending on the chat activity:
-    var nextRequest = 1000;
-    // 2 seconds
-    if (chat.data.noActivity > 3) {
-        nextRequest = 2000;
-    }
-    if (chat.data.noActivity > 10) {
-        nextRequest = 5000;
-    }
-    // 10 seconds
-    if (chat.data.noActivity > 20) {
-        nextRequest = 10000;
-    }
-    setTimeout(callback, nextRequest);
+    chatSDK.getEvents(onChatMessageReceived, onChatStatusReceived, onChatDisconnect, onChatError, onAgentTyping);
+    // Setting a timeout for the next request
+	setTimeout(callback, chatSDKGlobals.DataGlobal.getEventsTimeoutMS);
 };
 // This method displays an error message on the top of the page:
 chat.displayError = function(msg) {

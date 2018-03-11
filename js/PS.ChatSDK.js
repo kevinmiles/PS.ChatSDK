@@ -5,7 +5,8 @@ var chatSDK = {
 	getEvents: function(guiCallbackFunctionChatMessage,
 	                    guiCallbackFunctionChatStatus,
 	                    guiCallbackFunctionChatDisconnect,
-	                    guiCallbackFunctionChatError) {
+	                    guiCallbackFunctionChatError,
+						guiCallbackFunctionAgentTyping) {
 
 		if (chatSDK.isNotConnected())
 			return guiCallbackFunctionChatError(null, null);
@@ -24,7 +25,14 @@ var chatSDK = {
 				dataType: 'json'
 			})
 			.done(function(res) {
-				if (!res.Events) return guiCallbackFunctionChatError(null, null);
+				if (!res.Events) {
+					if (guiCallbackFunctionChatError instanceof Function)									
+						guiCallbackFunctionChatError(null, null);
+					else
+						console.error('guiCallbackFunctionChatError is not a function.');	
+					
+					return;
+				}
 				$.each(res.Events,
 					function(i, item) {
 						chatSDKGlobals.DataGlobal.lastEventId = item.Event_ID;
@@ -40,8 +48,12 @@ var chatSDK = {
 									URL_Pushed: item.URL_Pushed,
 									Additional_Information: item.Additional_Information
 								};
-
-								guiCallbackFunctionChatMessage(chatResult);
+								
+								if (guiCallbackFunctionChatMessage instanceof Function)									
+									guiCallbackFunctionChatMessage(chatResult);
+								else
+									console.error('guiCallbackFunctionChatMessage is not a function.');
+								
 								break;
 							}
 							case "status":
@@ -58,19 +70,38 @@ var chatSDK = {
 									Status_Desc: statusDesc.replace(/</g, '&lt;').replace(/>/g, '&gt;'),
 									Additional_Information: item.Additional_Information
 								};
+								
+								if (guiCallbackFunctionChatStatus instanceof Function)									
+									guiCallbackFunctionChatStatus(chatResult);
+								else
+									console.error('guiCallbackFunctionChatStatus is not a function.');						
 
-								guiCallbackFunctionChatStatus(chatResult);
 								break;
 							}
 							case "ParticipantDisconnected":
 							{
 								chatSDKGlobals.DataGlobal.connId = -1;
-								guiCallbackFunctionChatDisconnect(item.Participant_Name);
+								if (guiCallbackFunctionChatDisconnect instanceof Function)									
+									guiCallbackFunctionChatDisconnect(item.Participant_Name);
+								else
+									console.error('guiCallbackFunctionChatDisconnect is not a function.');						
+																
 								break;
+							}
+							case "typingStatus": 
+							{
+								if (guiCallbackFunctionAgentTyping instanceof Function)									
+									guiCallbackFunctionAgentTyping(item.Message_Text);
+								else
+									console.error('guiCallbackFunctionAgentTyping is not a function.');								
 							}
 							case "Error":
 							{
-								guiCallbackFunctionChatError(item.Error_Code, null);
+								if (guiCallbackFunctionChatError instanceof Function)									
+									guiCallbackFunctionChatError(item.Error_Code, null);
+								else
+									console.error('guiCallbackFunctionChatError is not a function.');								
+								
 								break;
 							}
 						}

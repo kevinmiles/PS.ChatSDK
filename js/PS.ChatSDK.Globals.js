@@ -70,7 +70,8 @@ var chatSDKGlobals = {
         his: "",
         connId: -1,
         lastEventId: 0,
-        CCUServerAddress: "http://dnccsp12.dn12.loc"
+        CCUServerAddress: "http://dnccsp12.dn12.loc",
+		getEventsTimeoutMS: 1000
     },
     IsVideoEnabled: false,
     ParticipantDisconnectedMessage: 'Participant {name} disconnected'

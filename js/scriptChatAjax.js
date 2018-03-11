@@ -5,8 +5,7 @@ $(document)
 var chat = {
     chatEventHeader: "[ccspChatEvent]",
     data: {
-        lastID: 0,
-        noActivity: 0
+        lastID: 0
     }
 };
 // Init binds event listeners and sets up timers:
@@ -299,9 +298,7 @@ chat.addChatLine = function(params) {
 // (since lastID), and adds them to the page.
 chat.getEvents = function(callback) {
     var bContinue = true;
-    var noActivity = 0;
     chatSDK.getEvents(function ChatMessage(result) {
-        chat.data.noActivity = 0;
         if (chat.isChatEvent(result)) {
             chat.handleChatEvent(result);
         } else if (chat.isVideoSession(result)) {
@@ -310,7 +307,6 @@ chat.getEvents = function(callback) {
             chat.addChatLine(result);
         }
     }, function ChatStatus(result) {
-        chat.data.noActivity = 0;
         log.info(result.Status_Code + result.Status_Desc);
         if (result.Status_Code == "107") //disconnected
         {
@@ -326,22 +322,20 @@ chat.getEvents = function(callback) {
         else if (result != null) chat.displayError(result.statusText);
         else //no events
             chat.data.noActivity++;
-    });
-    // Setting a timeout for the next request,
-    // depending on the chat activity:
-    var nextRequest = 1000;
-    // 2 seconds
-    if (chat.data.noActivity > 3) {
-        nextRequest = 2000;
-    }
-    if (chat.data.noActivity > 10) {
-        nextRequest = 5000;
-    }
-    // 10 seconds
-    if (chat.data.noActivity > 20) {
-        nextRequest = 10000;
-    }
-    setTimeout(callback, nextRequest);
+    }, function AgentTyping(typingStatus){
+		if (typingStatus === "1"){
+			$('#agentTypingMessage').show();
+			return;
+		}
+		else if (typingStatus === "2") {
+			$('#agentTypingMessage').hide();
+			return;
+		}
+		
+		log.error('typingStatus ' + typingStatus + ' is not supported');
+	});
+    // Setting a timeout for the next request
+    setTimeout(callback, chatSDKGlobals.DataGlobal.getEventsTimeoutMS);
 };
 
 // This method displays an error message on the top of the page:
