@@ -6,13 +6,23 @@ var chat = {
     chatEventHeader: "[ccspChatEvent]",
     data: {
         lastID: 0,
-		currentCallID: undefined
+        currentCallID: undefined
+    },
+    linkifyOptions: {
+        format: {
+            url: function(value) {
+                return value.length > 50 ? value.slice(0, 50) + '…' : value
+            }
+        },
+        ignoreTags: [
+            'script'
+        ]
     }
 };
 
 var log = window.log || {
-	info: function(m) {console.log(m);},
-	error: function(m) {console.error(m);}
+    info: function(m) { console.log(m); },
+    error: function(m) { console.error(m); }
 }
 
 // Init binds event listeners and sets up timers:
@@ -162,13 +172,19 @@ chat.disconnectButtonOnClick = function() {
         if (success == false) {
             chat.displayError(result.statusText);
         }
-		chat.Disconnect();
+        chat.Disconnect();
     });
     return false;
 };
 // The render method generates the HTML markup 
 // that is needed by the other methods:
 chat.render = function(template, params) {
+    var renderMessage = function(params) {
+        if (params.text !== "")
+            return linkifyHtml($("<div />").html(params.text).text(), chat.linkifyOptions);
+        return linkifyHtml(params.URL_Pushed, chat.linkifyOptions);
+    };
+
     var arr = [];
     switch (template) {
         case 'chatLine':
@@ -180,7 +196,7 @@ chat.render = function(template, params) {
                 params.isSystemMessage ? '' : (params.author + ':'),
                 '</strong> ',
                 params.isSystemMessage ? '<i class="systemMessage">' : '',
-                params.text !== "" ? params.text : params.URL_Pushed,
+                params.author_type === 'me' ? params.text : renderMessage(params),
                 params.isSystemMessage ? '</i>' : '',
                 '</div>'
             ];
@@ -216,7 +232,7 @@ chat.addChatLine = function(params) {
         .append(markup);
 
     var bottomCoord = $('#chatLineHolder')[0].scrollHeight;
-    $('#chatLineHolder').slimScroll({scrollTo: bottomCoord});        
+    $('#chatLineHolder').slimScroll({ scrollTo: bottomCoord });
 };
 
 chat.AddSystemMessage = function(message) {
@@ -245,9 +261,9 @@ var onChatStatusReceived = function(result) {
         message = message.replace('{timeToWait}', chatSDKGlobals["WaitingInQueue"][result.Additional_Information]);
         message = message.replace('{minutesToWait}', result.Estimated_Time);
     }
-	if (result.Status_Code == "166") {
+    if (result.Status_Code == "166") {
         chat.data.currentCallID = result.CallID;
-		return;
+        return;
     }
     if (result.Status_Code == "107") //disconnected
     {
@@ -257,17 +273,16 @@ var onChatStatusReceived = function(result) {
         bContinue = false;
         chat.Disconnect();
     }
-	
-	if (!message){
-		try{
-			log.info('Unknown status received: ' + JSON.stringify(result));
-		}
-		catch(e){
-			log.error(e);
-		}
-		return;
-	}
-		
+
+    if (!message) {
+        try {
+            log.info('Unknown status received: ' + JSON.stringify(result));
+        } catch (e) {
+            log.error(e);
+        }
+        return;
+    }
+
     chat.AddSystemMessage(message);
 };
 
@@ -282,17 +297,16 @@ var onChatError = function(errCode, result) {
     else if (result != null) chat.displayError(result.statusText);
 };
 
-var onAgentTyping = function(typingStatus){
-	if (typingStatus === "1"){
-		$('#agentTypingMessage').show();
-		return;
-	}
-	else if (typingStatus === "2") {
-		$('#agentTypingMessage').hide();
-		return;
-	}
-	
-	log.error('typingStatus ' + typingStatus + ' is not supported');
+var onAgentTyping = function(typingStatus) {
+    if (typingStatus === "1") {
+        $('#agentTypingMessage').show();
+        return;
+    } else if (typingStatus === "2") {
+        $('#agentTypingMessage').hide();
+        return;
+    }
+
+    log.error('typingStatus ' + typingStatus + ' is not supported');
 };
 
 // This method requests the latest chats
@@ -301,7 +315,7 @@ chat.getEvents = function(callback) {
     var bContinue = true;
     chatSDK.getEvents(onChatMessageReceived, onChatStatusReceived, onChatDisconnect, onChatError, onAgentTyping);
     // Setting a timeout for the next request
-	setTimeout(callback, chatSDKGlobals.DataGlobal.getEventsTimeoutMS);
+    setTimeout(callback, chatSDKGlobals.DataGlobal.getEventsTimeoutMS);
 };
 // This method displays an error message on the top of the page:
 chat.displayError = function(msg) {
