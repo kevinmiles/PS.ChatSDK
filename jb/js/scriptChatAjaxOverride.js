@@ -182,7 +182,7 @@ chat.render = function(template, params) {
     var renderMessage = function(params) {
         if (params.text !== "")
             return linkifyHtml($("<div />").html(params.text).text(), chat.linkifyOptions);
-        return linkifyHtml(params.URL_Pushed, chat.linkifyOptions);
+        return linkifyHtml(encodeURI(params.URL_Pushed), chat.linkifyOptions);
     };
 
     var arr = [];
