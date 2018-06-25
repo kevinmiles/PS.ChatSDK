@@ -46,7 +46,7 @@ var chatSDKGlobals = {
         "Calling_User_Priority": "-1",
         "Calling_User_URL": "facebook",
         "Calling_User_FirstName": "CustomerFirstName",
-        "Calling_User_LastName": "CustomerLastName",
+        "Calling_User_LastName": "",
         "TenantID": "t1",
         "OptionalParameterCount": ""
     },
@@ -74,5 +74,50 @@ var chatSDKGlobals = {
 		getEventsTimeoutMS: 1000
     },
     IsVideoEnabled: false,
-    ParticipantDisconnectedMessage: 'Participant {name} disconnected'
+    ParticipantDisconnectedMessage: 'Participant {name} disconnected',
+	AutoConnect: false,
+	HasFirstName: false,
+	HasHardMessage: false,
+	QueryOptionalParameters: {},
 };
+
+(function initGlobalsFromQuerystring(queryParamsArray) {
+	var queryParams = {};
+	var additionalMappings = { "TQoS" : "TQOS", "TenantName" : "TenantID" }
+	
+	for (var i = 0; i < queryParamsArray.length; ++i)
+	{
+		var queryParam = queryParamsArray[i].split('=', 2);
+		if (queryParam.length !== 2) 
+			continue;
+		queryParams[queryParam[0]] = decodeURIComponent(queryParam[1].replace(/\+/g, " "));
+	}
+
+	for (var prop in chatSDKGlobals.JoinChatData) {
+		if (queryParams[prop] !== undefined) {
+			chatSDKGlobals.JoinChatData[prop] = queryParams[prop];
+		}
+	}	
+	for (var prop in additionalMappings) {
+		if (queryParams[prop] !== undefined) {
+			chatSDKGlobals.JoinChatData[additionalMappings[prop]] = queryParams[prop];
+		}
+	}	
+
+	if (queryParams["OptionalParameterCount"] !== undefined) {
+		var optionalqueryParams = [];
+		for (var i = 0; i < queryParams["OptionalParameterCount"] * 1; i++) {
+			if (queryParams["OptionalParameter" + i] !== undefined) {
+				var split = queryParams["OptionalParameter" + i].split(',');
+				if (split.length < 2) continue;
+				optionalqueryParams.push({key: split.shift(), value: split.join(',')});
+			}
+		}
+		chatSDKGlobals.QueryOptionalParameters = optionalqueryParams;
+	}
+
+	chatSDKGlobals.AutoConnect = (queryParams["command"] === "connect");
+	chatSDKGlobals.HasFirstName = (queryParams["Calling_User_FirstName"] !== undefined);
+	chatSDKGlobals.HasHardMessage = (queryParams["Calling_User_HardMessage"] !== undefined);
+
+}(window.location.search.substr(1).split('&'))) 

@@ -23,6 +23,13 @@ chat.init = function() {
     $('#name').defaultText('Your name');
     $('#subject').defaultText('');
 
+	if(chatSDKGlobals.HasFirstName) {
+		$('#name').val(chatSDKGlobals.JoinChatData.Calling_User_FirstName);
+	}
+	if(chatSDKGlobals.HasHardMessage) {
+		$('#subject').val(chatSDKGlobals.JoinChatData.Calling_User_HardMessage);
+	}
+
     // Converting the #chatLineHolder div into a jScrollPane,
     // and saving the plugin's API in chat.data:
     // We use the working variable to prevent
@@ -32,15 +39,18 @@ chat.init = function() {
     // Logging out a person in the chat:
     window.onbeforeunload = function(e) {
         var e = e || window.event;
-        chatSDK.leaveChat();
         // For IE and Firefox
         if (e) {
-            e.returnValue = '';
+            e.returnValue = (chatSDK.isNotConnected() ? undefined : '');
         }
         // For Chrome and Safari
-        return '';
+        return (chatSDK.isNotConnected() ? undefined : '');
     };
 
+    window.onunload = function(e) {
+        chatSDK.leaveChat();
+    };
+	
     $("#connect").on("click",
         function() {
             if (working) return false;
@@ -135,10 +145,6 @@ chat.init = function() {
             "#send",
             function() {
                 //$('#submitForm').submit(function () {
-                if (onkeyupTimer != null) {
-                    window.clearTimeout(onkeyupTimer);
-                    onkeyupTimer = null;
-                }
                 var text = $('#chatText')
                     .val();
                 if (text.length === 0) {
@@ -207,6 +213,10 @@ chat.init = function() {
                     processData: false
                 });
             });
+
+	if(chatSDKGlobals.AutoConnect) {
+		$("#connect").trigger("click");
+	}
 };
 
 // The login method hides displays the
@@ -236,7 +246,6 @@ chat.login = function(name, gravatar) {
 chat.disconnectButtonOnClick = function() {
     // Logging the user out:
     chatSDK.leaveChat(function(success, result) {
-        working = false;
         if (success == false) {
             chat.displayError(result.statusText);
         } else {
@@ -362,7 +371,6 @@ chat.displayError = function(msg) {
 
 chat.typingMessage = function(typing_status) {
     chatSDK.typingMessage(typing_status, function(success, result) {
-        working = false;
         if (success == false) {
             chat.displayError("typingMessage stop -" + result.statusText);
         } else {

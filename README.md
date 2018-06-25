@@ -35,6 +35,23 @@ The picture below shows the system components for online mode.
 	Refer to [CCSP APIs Guide](https://support.cosmocom.com/download/attachments/501/CCSP+APIs+Guide.pdf?version=3) for more information.
     * *IsVideoEnabled* - (true or false) - enables or disables video chat capabilities (please contact Enghouse PS to get more information)
 
+  * **Optionally *JoinChatData* parameters can be overridden via HTTP querystring parameters when opening chat page.** Following members of *JoinChatData* can be overridden:
+    * *Call_Center_Address*
+    * *Call_Center_QueueName*
+    * *Calling_User_HardMessage*
+    * *TQOS* - querystring parameter can also be named *TQoS*
+    * *Routing_Priority*
+    * *AccountID*
+    * *Calling_User_Skills*
+    * *ApplicationID*
+    * *Call_Center_Port*
+    * *Calling_User_Priority*
+    * *Calling_User_URL*
+    * *Calling_User_FirstName*
+    * *Calling_User_LastName*
+    * *TenantID* - querystring parameter can also be named *TenantName*
+    * *OptionalParameterCount* - if present *OptionalParametern* (where 0 <= n < *OptionalParameterCount*) parameters formated as *name,value* must be present too
+
 * **The Chat application installed on different server where chat API hosted:**
   * Same as above + Configure CCSP to support CORS - read [CCSP APIs Guide](https://support.cosmocom.com/download/attachments/501/CCSP+APIs+Guide.pdf?version=3) for assign headers to HTTP Response Headers.
 
@@ -49,6 +66,7 @@ File *js/PS.ChatSDK.js* contains following methods to interact with CCSP:
 
 ## 4 Additional examples
 * Example of ChatSDK usage is available: file index.html and additional files in jb folder, contains additional working example of ChatSDK usage. 
+* Example URL to open chat page with querystring parameters might look like: *http://www.example.com/PS_ChatSDK/index.html?command=connect&Call_Center_Address=127.0.0.1&Call_Center_QueueName=q1&TenantName=t1&Calling_User_Skills=s1&Calling_User_FirstName=John&Calling_User_LastName=Doe&&Calling_User_HardMessage=I%20have%20a%20problem&OptionalParameterCount=2&OptionalParameter0=paramName1%2CparamValue1&OptionalParameter1=paramName2%2CparamValue2*
 
 ## 5 Troubleshooting notes
 

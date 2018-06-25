@@ -58,6 +58,9 @@ var chatSDK = {
 							}
 							case "status":
 							{
+								if (item.Status_Code == 107)
+									chatSDKGlobals.DataGlobal.connId = -1;
+								
 								var statusDesc = '';
 								var status = chatSDKGlobals.StatusRes[item.Status_Code];
 								if (status)
@@ -117,10 +120,10 @@ var chatSDK = {
 		opt1.value = "true";
 		var optionalParameterArray = new Array();
 		optionalParameterArray.push(opt1);
+		optionalParameterArray = optionalParameterArray.concat(chatSDKGlobals.QueryOptionalParameters);
 		chatSDKGlobals.JoinChatData.OptionalParameterCount = optionalParameterArray;
 		chatSDKGlobals.JoinChatData.Calling_User_FirstName = strUserName;
 		chatSDKGlobals.JoinChatData.Calling_User_HardMessage = strUserSubject;
-		chatSDKGlobals.JoinChatData.Calling_User_LastName = "";
 		$.ajax({
 				url: chatSDKGlobals.DataGlobal.CCUServerAddress + "/scripts/ChatExtension.DLL?joinchat",
 				cache: false,
@@ -209,17 +212,18 @@ var chatSDK = {
 				type: 'POST',
 				data: JSON.stringify(chatSDKGlobals.LeaveChatData),
 				contentType: 'application/json; charset=utf-8',
-				dataType: 'json'
+				dataType: 'json',
+				async: guiCallbackFunction !== undefined,
 			})
 			.done(function(res) {
 				chatSDK.initGlobals();
-				guiCallbackFunction(true, res);
+				if (guiCallbackFunction) guiCallbackFunction(true, res);
 			})
 			.fail(function(jqXhr) {
 				if (jqXhr.statusText === "OK") {
 					chatSDK.initGlobals();
-					guiCallbackFunction(true, jqXhr);
-				} else guiCallbackFunction(false, jqXhr);
+					if (guiCallbackFunction) guiCallbackFunction(true, jqXhr);
+				} else if (guiCallbackFunction) guiCallbackFunction(false, jqXhr);
 			});
 	},
 	initGlobals: function() {
