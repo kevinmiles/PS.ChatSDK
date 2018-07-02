@@ -120,7 +120,9 @@ var chatSDK = {
 		opt1.value = "true";
 		var optionalParameterArray = new Array();
 		optionalParameterArray.push(opt1);
-		optionalParameterArray = optionalParameterArray.concat(chatSDKGlobals.QueryOptionalParameters);
+		if (Object.keys(chatSDKGlobals.QueryOptionalParameters).length !== 0){
+			optionalParameterArray = optionalParameterArray.concat(chatSDKGlobals.QueryOptionalParameters);
+		}
 		chatSDKGlobals.JoinChatData.OptionalParameterCount = optionalParameterArray;
 		chatSDKGlobals.JoinChatData.Calling_User_FirstName = strUserName;
 		chatSDKGlobals.JoinChatData.Calling_User_HardMessage = strUserSubject;
